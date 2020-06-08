@@ -1,0 +1,67 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-istio
+  labels:
+    app: backend-istio
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: backend-istio
+  template:
+    metadata:
+      labels:
+        app: backend-istio
+    spec:
+      containers:
+      - name: backend-istio
+        image: arqt-istio/backend-istio:latest
+        imagePullPolicy: Never
+        resources:
+          requests:
+            cpu: 300m
+            memory: 130Mi
+          limits:
+            cpu: 600m
+            memory: 250Mi
+        ports:
+        - name: http
+          containerPort: 8080
+          protocol: TCP
+        - name: health
+          containerPort: 8081
+          protocol: TCP
+        livenessProbe:
+          httpGet:
+            path: /actuator/health
+            port: health
+          initialDelaySeconds: 5
+          periodSeconds: 2
+        startupProbe:
+          httpGet:
+            path: /actuator/health
+            port: health
+          failureThreshold: 5
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /actuator/health
+            port: health
+          initialDelaySeconds: 7
+          periodSeconds: 5
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-istio
+  labels:
+    app: backend-istio
+spec:
+  ports:
+  - name: http
+    port: 80
+    targetPort: 8080
+  selector:
+    app: backend-istio

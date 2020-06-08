@@ -1,0 +1,23 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: backend-internal-route
+spec:
+  hosts:
+  - backend-istio
+  http:
+  - match:
+    - name: fault-to-success
+      uri:
+        exact: "/v1/sample/success"
+    fault:
+      delay:
+        fixedDelay: 3s
+        percentage:
+          value: 100
+    route:
+      - destination:
+          host: backend-istio
+  - route:
+      - destination:
+          host: backend-istio
